@@ -8,7 +8,7 @@
 # Part 1: Load Packages --------------------------------------------------
 
 # Load packages
-packages<- c("tidyverse", "readr", "janitor")
+packages<- c("tidyverse", "readxl", "janitor")
 
 pacman::p_load(packages, character.only = TRUE)
 

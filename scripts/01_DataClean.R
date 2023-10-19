@@ -48,12 +48,7 @@ SEOT_teeth <- SEOT_teeth_raw %>%
 
 
 
-#Uncertainty by tooth type
-tooth_type <- SEOT_teeth %>% 
-  group_by(tooth_category, certainty_code) %>% 
-  summarise(n=n()) %>% 
-  mutate(freq = n/sum(n)) %>% 
-  ungroup()
+
 
 
 
