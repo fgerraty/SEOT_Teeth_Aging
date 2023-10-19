@@ -5,13 +5,17 @@
 # Script 01: Data Clean + Manipulation ########################################
 #------------------------------------------------------------------------------
 
-# Part 1: Load raw dataset ----------------------------------------------------
+###############################################
+# Part 1: Load raw dataset ####################
+###############################################
 
 SEOT_teeth_raw <- read_excel("data/raw/SEOT_teeth_raw.xlsx")
 
-# Part 2: Clean and summarize -------------------------------------------------
+###############################################
+# Part 2: Clean and summarize datasets ########
+###############################################
 
-# Categorize tooth types (premolars, canines, incisors, molars, or unknown)
+# Part 2A: Categorize tooth types (premolars, canines, incisors, molars, or unknown) ----
 P <- c("P2a","P2b","P2","Pa","Pb","P","UP","LLP2","URP3","URP2","ULP3","ULP2","URP2 or ULP2","P2, additional tooth sent in 2023","LRP2","URP4")
 C <- c("C","URC","LRC","ULC","ULC (BROKEN)")
 I <- c("URI3","URI1","I3","ULI3","LLI2","LLI1","LRI2","UI1?","I2","UI2","LRI1")
@@ -19,14 +23,18 @@ M <- c("M","URM1","LRM1","ULM1","M2")
 UNK <- c("UNK", "UNKa", "UNKb")
 
 
-#Clean raw dataset
+# Part 2B: Generate clean, single-tooth dataset ----------------------------------------
 SEOT_teeth <- SEOT_teeth_raw %>% 
   clean_names()%>% 
 #Remove individuals with no teeth collected and/or no ages calculated due to tooth damage
   filter(tooth_collected == "Y",
          otter_num != "SOD-2021-200", #individual with tooth damage (couldnt be aged)
          otter_num != "KEFJ-SOD-2014-01",#individual with certainty code missing
-         otter_num != "SOD-2006-17/ capture otter SO-05-04") %>% 
+         otter_num != "SOD-2006-17/ capture otter SO-05-04",
+         otter_num != "SOD-2007-02/capture otter SO-01-01", #teeth pulled different years
+         otter_num != "SOD-2007-01/ capture otter SO-04-24", #teeth pulled different years
+         otter_num != "WPWS-SOD-2014-02/ capture otter SO-2010-08" #teeth pulled different years
+         ) %>% 
 #Categorize teeth to broad categories
   mutate(tooth_category = 
            #categorize all unknown teeth as "UNK"           
@@ -41,8 +49,7 @@ SEOT_teeth <- SEOT_teeth_raw %>%
          tooth_id = tooth_num, 
          area, age, age_class, certainty_code, matson_min, matson_max, matson_notes, sex, tooth_category, latitude, longitude)
 
-# 2 Tooth Comparison dataset --------------------------------------------------
-
+# Part 2C: Generate clean, 2-tooth dataset ----------------------------------------------
 
 tooth_age_comparison <- SEOT_teeth %>% 
   select(otter_id, age, age_class, certainty_code, tooth_category) %>% 
@@ -97,11 +104,8 @@ tooth_age_comparison <- SEOT_teeth %>%
     tooth_category1 == "I" & tooth_category2 == "C" ~ "CI",
     tooth_category1 == "I" & tooth_category2 == "I" ~ "II",
     tooth_category1 == "UNK" | tooth_category2 == "UNK" ~ "UNK",
-    TRUE ~ NA_character_)) %>% 
-  
-
-
-
-
+    TRUE ~ NA_character_))%>% 
+  #Bring predictors (year, region) into dataframe
+  left_join(., unique(SEOT_teeth[,c(1,3,5)]), by="otter_id")
 
 
