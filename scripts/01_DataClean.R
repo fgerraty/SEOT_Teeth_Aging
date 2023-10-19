@@ -25,8 +25,8 @@ SEOT_teeth <- SEOT_teeth_raw %>%
 #Remove individuals with no teeth collected and/or no ages calculated due to tooth damage
   filter(tooth_collected == "Y",
          otter_num != "SOD-2021-200", #individual with tooth damage (couldnt be aged)
-         otter_num != "KEFJ-SOD-2014-01" #individual with certainty code missing
-         ) %>% 
+         otter_num != "KEFJ-SOD-2014-01",#individual with certainty code missing
+         otter_num != "SOD-2006-17/ capture otter SO-05-04") %>% 
 #Categorize teeth to broad categories
   mutate(tooth_category = 
            #categorize all unknown teeth as "UNK"           
@@ -41,14 +41,18 @@ SEOT_teeth <- SEOT_teeth_raw %>%
          tooth_id = tooth_num, 
          area, age, age_class, certainty_code, matson_min, matson_max, matson_notes, sex, tooth_category, latitude, longitude)
 
+# 2 Tooth Comparison dataset --------------------------------------------------
+
+age_unnest <- c("age1", "age2")
+nm1 <- c(setdiff(names(tooth_age_comparison), 'age'), age_unnest)
 
 
 
-
-
-
-
-
-
-
-
+tooth_age_comparison <- SEOT_teeth %>% 
+  select(otter_id, age, age_class, certainty_code, tooth_category) %>% 
+  group_by(otter_id) %>% 
+  reframe(age = t(combn(age, 2)),
+          age_class = t(combn(age_class, 2)),
+          certainty_code = t(combn(certainty_code, 2)),
+          tooth_category = t(combn(tooth_category, 2)))
+#Need to figure out how to unnest / unlist columns
