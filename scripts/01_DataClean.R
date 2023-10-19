@@ -109,3 +109,10 @@ tooth_age_comparison <- SEOT_teeth %>%
   left_join(., unique(SEOT_teeth[,c(1,3,5)]), by="otter_id")
 
 
+####################################################
+# Part 3: Export clean datasets ####################
+####################################################
+
+# Export clean datasets as .csvs in "processed data" folder
+write_csv(SEOT_teeth, "data/processed/SEOT_teeth.csv")
+write_csv(tooth_age_comparison, "data/processed/tooth_age_comparison.csv")
