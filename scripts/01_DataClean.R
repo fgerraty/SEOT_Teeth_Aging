@@ -43,16 +43,65 @@ SEOT_teeth <- SEOT_teeth_raw %>%
 
 # 2 Tooth Comparison dataset --------------------------------------------------
 
-age_unnest <- c("age1", "age2")
-nm1 <- c(setdiff(names(tooth_age_comparison), 'age'), age_unnest)
-
-
 
 tooth_age_comparison <- SEOT_teeth %>% 
   select(otter_id, age, age_class, certainty_code, tooth_category) %>% 
+  #Group by otter ID and then create a new line for each combination of 2 teeth within the same otter
   group_by(otter_id) %>% 
   reframe(age = t(combn(age, 2)),
           age_class = t(combn(age_class, 2)),
           certainty_code = t(combn(certainty_code, 2)),
-          tooth_category = t(combn(tooth_category, 2)))
-#Need to figure out how to unnest / unlist columns
+          tooth_category = t(combn(tooth_category, 2))) %>% 
+  #Extract values from list objects
+  mutate(age1 = age[,1],
+         age2 = age[,2],
+         age_class1 = age_class[,1],
+         age_class2 = age_class[,2],
+         certainty_code1 = certainty_code[,1],
+         certainty_code2 = certainty_code[,2],
+         tooth_category1 = tooth_category[,1],
+         tooth_category2 = tooth_category[,2]) %>% 
+  #Remove listed objects (redundant)
+  select(-age,-age_class,-certainty_code,-tooth_category) %>% 
+  #Calculate binary (1/0) response of same age and age class values
+  mutate(age_agreement = if_else(age1 == age2, 1,0),
+         age_class_agreement =if_else(age_class1 == age_class2, 1,0)) %>% 
+  #Generate certainty_code combinations 
+  mutate(certainty_code_combo = case_when(
+    certainty_code1 == "A" & certainty_code2 == "A" ~ "AA",
+    certainty_code1 == "A" & certainty_code2 == "B" ~ "AB",
+    certainty_code1 == "B" & certainty_code2 == "A" ~ "AB",
+    certainty_code1 == "A" & certainty_code2 == "C" ~ "AC",
+    certainty_code1 == "C" & certainty_code2 == "A" ~ "AC",
+    certainty_code1 == "B" & certainty_code2 == "B" ~ "BB",
+    certainty_code1 == "B" & certainty_code2 == "C" ~ "BC",
+    certainty_code1 == "C" & certainty_code2 == "B" ~ "BC",
+    certainty_code1 == "C" & certainty_code2 == "C" ~ "CC",
+    TRUE ~ NA_character_)) %>%
+  #Generate tooth_category combinations
+  mutate(tooth_category_combo = case_when(
+    tooth_category1 == "M" & tooth_category2 == "M" ~ "MM",
+    tooth_category1 == "M" & tooth_category2 == "P" ~ "MP",
+    tooth_category1 == "M" & tooth_category2 == "C" ~ "MC",
+    tooth_category1 == "M" & tooth_category2 == "I" ~ "MI",
+    tooth_category1 == "P" & tooth_category2 == "M" ~ "MP",
+    tooth_category1 == "P" & tooth_category2 == "P" ~ "PP",
+    tooth_category1 == "P" & tooth_category2 == "C" ~ "PC",
+    tooth_category1 == "P" & tooth_category2 == "I" ~ "PI",
+    tooth_category1 == "C" & tooth_category2 == "M" ~ "MC",
+    tooth_category1 == "C" & tooth_category2 == "P" ~ "PC",
+    tooth_category1 == "C" & tooth_category2 == "C" ~ "CC",
+    tooth_category1 == "C" & tooth_category2 == "I" ~ "CI",
+    tooth_category1 == "I" & tooth_category2 == "M" ~ "MI",
+    tooth_category1 == "I" & tooth_category2 == "P" ~ "PI",
+    tooth_category1 == "I" & tooth_category2 == "C" ~ "CI",
+    tooth_category1 == "I" & tooth_category2 == "I" ~ "II",
+    tooth_category1 == "UNK" | tooth_category2 == "UNK" ~ "UNK",
+    TRUE ~ NA_character_)) %>% 
+  
+
+
+
+
+
+
