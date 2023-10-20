@@ -17,55 +17,62 @@ tooth_age_comparison <- read_csv("data/processed/tooth_age_comparison.csv")
 # Part 2: Uncertainty by Different Variables ##################################
 ###############################################################################
 
+pal = c("A" = "#0072b2", "B" = "#009e73", "C" = "#d55e00")
+
 # Uncertainty by tooth type plot and table ------------------------------------
 tooth_type <- SEOT_teeth %>% 
   group_by(tooth_category, certainty_code) %>% 
   summarise(n=n()) %>% 
   mutate(freq = n/sum(n), #calculate frequency of each uncertainty level
-         tooth_category = factor(tooth_category, levels = c("M", "P", "C", "I"))) %>% 
+         tooth_category = factor(tooth_category, levels = c("M", "P", "C", "I")),
+         certainty_code = factor(certainty_code, levels = c("C", "B", "A")),
+         n_category = sum(n)) %>% 
   ungroup() %>% 
   filter(tooth_category != "UNK") #remove unknown teeth
 
-
-ggplot(tooth_type, aes(x=tooth_category, y=freq, fill=tooth_category))+
-  geom_bar(stat='identity')+
-  facet_grid(cols = vars(certainty_code), scales = "free_y")+
+ggplot(tooth_type, aes(x=tooth_category, y=freq))+
+  geom_bar(aes(fill=certainty_code), position = "fill", stat='identity')+
+  scale_fill_manual(values = pal, breaks = c("A", "B", "C"), labels = c("A (low)", "B (medium)", "C (high)"))+
   theme_classic()+
-  scale_fill_viridis_d(labels = c("Molar", "Premolar", "Canine", "Incisor"))+
-  labs(y="Frequency of Uncertainty Level", x="", fill = "Tooth Type")
+  labs(y="Frequency of Uncertainty Level", x="Tooth Type", fill = "Uncertainty Level")+
+  geom_text(aes(label = paste(n), group = certainty_code), position = position_stack(vjust = 0.5), color = "white")+
+  scale_x_discrete(labels = c("Molar", "Premolar", "Canine", "Incisor"))
 
-
-#Uncertainty by area
+#Uncertainty by area ----------------------------------------------------------
 area <- SEOT_teeth %>% 
   group_by(area, certainty_code) %>% 
   summarise(n=n()) %>% 
-  mutate(freq = n/sum(n)) %>%  #calculate frequency of each uncertainty level) %>% 
+  mutate(freq = n/sum(n),
+         n_area = sum(n),
+         certainty_code = factor(certainty_code, levels = c("C", "B", "A"))) %>%  
   ungroup() 
 
 
-ggplot(area, aes(x=area, y=freq, fill=area))+
-  geom_bar(stat='identity')+
-  facet_grid(cols = vars(certainty_code), scales = "free_y")+
+ggplot(area, aes(x=area, y=freq))+
+  geom_bar(aes(fill=certainty_code), position = "fill", stat='identity')+
+  scale_fill_manual(values = pal, breaks = c("A", "B", "C"), labels = c("A (low)", "B (medium)", "C (high)"))+
   theme_classic()+
-  scale_fill_viridis_d()+
-  labs(y="Frequency of Uncertainty Level", x="", fill = "Area")
+  geom_text(aes(label = paste(n), group = certainty_code), position = position_stack(vjust = 0.5), color = "white")+
+  labs(y="Frequency of Uncertainty Level", x="Region", fill = "Uncertainty Level")
+  
+  
 
-
-#Uncertainty by year
+#Uncertainty by year ----------------------------------------------------------
 year <- SEOT_teeth %>% 
   group_by(year, certainty_code) %>% 
   summarise(n=n()) %>% 
   mutate(freq = n/sum(n),
-         year = as.character(year)) %>%  #calculate frequency of each uncertainty level) %>% 
+         year = as.character(year),
+         certainty_code = factor(certainty_code, levels = c("C", "B", "A"))) %>%
   ungroup() 
 
 
-ggplot(year, aes(x=year, y=freq, fill=year))+
-  geom_bar(stat='identity')+
-  facet_grid(cols = vars(certainty_code), scales = "free_y")+
+ggplot(year, aes(x=year, y=freq))+
+  geom_bar(aes(fill=certainty_code), position = "fill", stat='identity')+
+  scale_fill_manual(values = pal, breaks = c("A", "B", "C"), labels = c("A (low)", "B (medium)", "C (high)"))+
   theme_classic()+
-  scale_fill_viridis_d()+
-  labs(y="Frequency of Uncertainty Level", x="", fill = "Year")
+  geom_text(aes(label = paste(n), group = certainty_code), position = position_stack(vjust = 0.5), color = "white")+
+  labs(y="Frequency of Uncertainty Level", x="Year", fill = "Uncertainty Level")
 
 
 # Explore outputs of the 2-tooth dataset ---------------------------------------
