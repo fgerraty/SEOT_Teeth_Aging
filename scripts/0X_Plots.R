@@ -5,7 +5,6 @@
 # Script 0X: Plots #############################################################
 #------------------------------------------------------------------------------
 
-
 ###############################################
 # Part 1: Load datasets #######################
 ###############################################
@@ -69,8 +68,6 @@ ggplot(year, aes(x=year, y=freq, fill=year))+
   labs(y="Frequency of Uncertainty Level", x="", fill = "Year")
 
 
-
-
 # Explore outputs of the 2-tooth dataset ---------------------------------------
 
 #What proportion of the 2 tooth combinations are the same age?
@@ -80,8 +77,22 @@ sum(tooth_age_comparison$age_agreement)/length(tooth_age_comparison$age_agreemen
 sum(tooth_age_comparison$age_class_agreement)/length(tooth_age_comparison$age_class_agreement)
 
 
-tooth_comparison_summary <- tooth_age_comparison %>% 
+tooth_comparison_certainty_summary <- tooth_age_comparison %>% 
   group_by(certainty_code_combo) %>% 
-  summarise(freq_age_agreement = sum(age_agreement)/n(),
+  summarise(n = n(),
+            n_age_agreement = sum(age_agreement),
+            n_age_class_agreement = sum(age_class_agreement),
+            freq_age_agreement = sum(age_agreement)/n(),
             freq_age_class_agreement = sum(age_class_agreement)/n())
 
+ggplot(tooth_comparison_certainty_summary, aes(certainty_code_combo, freq_age_agreement, fill = certainty_code_combo, label = paste(n_age_agreement,n,sep = "/")))+
+  geom_bar(stat='identity')+
+  theme_classic()+
+  scale_fill_viridis_d()+
+  geom_text(vjust = -0.5)
+  
+ggplot(tooth_comparison_certainty_summary, aes(certainty_code_combo, freq_age_class_agreement, fill = certainty_code_combo, label = paste(n_age_class_agreement,n,sep = "/")))+
+  geom_bar(stat='identity')+
+  theme_classic()+
+  scale_fill_viridis_d()+
+  geom_text(vjust = -0.5)
