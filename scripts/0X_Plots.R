@@ -6,7 +6,17 @@
 #------------------------------------------------------------------------------
 
 
+###############################################
+# Part 1: Load datasets #######################
+###############################################
 
+SEOT_teeth <- read_csv("data/processed/SEOT_teeth.csv")
+tooth_age_comparison <- read_csv("data/processed/tooth_age_comparison.csv")
+
+
+###############################################################################
+# Part 2: Uncertainty by Different Variables ##################################
+###############################################################################
 
 # Uncertainty by tooth type plot and table ------------------------------------
 tooth_type <- SEOT_teeth %>% 
@@ -24,3 +34,54 @@ ggplot(tooth_type, aes(x=tooth_category, y=freq, fill=tooth_category))+
   theme_classic()+
   scale_fill_viridis_d(labels = c("Molar", "Premolar", "Canine", "Incisor"))+
   labs(y="Frequency of Uncertainty Level", x="", fill = "Tooth Type")
+
+
+#Uncertainty by area
+area <- SEOT_teeth %>% 
+  group_by(area, certainty_code) %>% 
+  summarise(n=n()) %>% 
+  mutate(freq = n/sum(n)) %>%  #calculate frequency of each uncertainty level) %>% 
+  ungroup() 
+
+
+ggplot(area, aes(x=area, y=freq, fill=area))+
+  geom_bar(stat='identity')+
+  facet_grid(cols = vars(certainty_code), scales = "free_y")+
+  theme_classic()+
+  scale_fill_viridis_d()+
+  labs(y="Frequency of Uncertainty Level", x="", fill = "Area")
+
+
+#Uncertainty by year
+year <- SEOT_teeth %>% 
+  group_by(year, certainty_code) %>% 
+  summarise(n=n()) %>% 
+  mutate(freq = n/sum(n),
+         year = as.character(year)) %>%  #calculate frequency of each uncertainty level) %>% 
+  ungroup() 
+
+
+ggplot(year, aes(x=year, y=freq, fill=year))+
+  geom_bar(stat='identity')+
+  facet_grid(cols = vars(certainty_code), scales = "free_y")+
+  theme_classic()+
+  scale_fill_viridis_d()+
+  labs(y="Frequency of Uncertainty Level", x="", fill = "Year")
+
+
+
+
+# Explore outputs of the 2-tooth dataset ---------------------------------------
+
+#What proportion of the 2 tooth combinations are the same age?
+sum(tooth_age_comparison$age_agreement)/length(tooth_age_comparison$age_agreement)
+
+#What proportion of the 2 tooth combinations are the same age class?
+sum(tooth_age_comparison$age_class_agreement)/length(tooth_age_comparison$age_class_agreement)
+
+
+tooth_comparison_summary <- tooth_age_comparison %>% 
+  group_by(certainty_code_combo) %>% 
+  summarise(freq_age_agreement = sum(age_agreement)/n(),
+            freq_age_class_agreement = sum(age_class_agreement)/n())
+

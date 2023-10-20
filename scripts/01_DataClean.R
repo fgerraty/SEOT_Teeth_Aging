@@ -105,6 +105,7 @@ tooth_age_comparison <- SEOT_teeth %>%
     tooth_category1 == "I" & tooth_category2 == "I" ~ "II",
     tooth_category1 == "UNK" | tooth_category2 == "UNK" ~ "UNK",
     TRUE ~ NA_character_))%>% 
+  mutate(certainty_category = if_else(certainty_code_combo == "AA", "High", "Low")) %>% 
   #Bring predictors (year, region) into dataframe
   left_join(., unique(SEOT_teeth[,c(1,3,5)]), by="otter_id")
 
