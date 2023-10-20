@@ -83,23 +83,23 @@ sum(tooth_age_comparison$age_agreement)/length(tooth_age_comparison$age_agreemen
 #What proportion of the 2 tooth combinations are the same age class?
 sum(tooth_age_comparison$age_class_agreement)/length(tooth_age_comparison$age_class_agreement)
 
-
 tooth_comparison_certainty_summary <- tooth_age_comparison %>% 
   group_by(certainty_code_combo) %>% 
   summarise(n = n(),
             n_age_agreement = sum(age_agreement),
-            n_age_class_agreement = sum(age_class_agreement),
-            freq_age_agreement = sum(age_agreement)/n(),
-            freq_age_class_agreement = sum(age_class_agreement)/n())
+            n_age_class_agreement = sum(age_class_agreement)) %>% 
+  adorn_totals("row") %>% 
+  mutate(freq_age_agreement = n_age_agreement/n,
+         freq_age_class_agreement = n_age_class_agreement/n) %>% 
+  ungroup() %>% pivot_longer(cols = c(freq_age_agreement, freq_age_class_agreement))
 
-ggplot(tooth_comparison_certainty_summary, aes(certainty_code_combo, freq_age_agreement, fill = certainty_code_combo, label = paste(n_age_agreement,n,sep = "/")))+
+
+#NOTE: N values are wrong!!!
+ggplot(tooth_comparison_certainty_summary, aes(certainty_code_combo, value, fill = certainty_code_combo
+                                #               ,label = value
+                                               ))+
   geom_bar(stat='identity')+
-  theme_classic()+
-  scale_fill_viridis_d()+
-  geom_text(vjust = -0.5)
-  
-ggplot(tooth_comparison_certainty_summary, aes(certainty_code_combo, freq_age_class_agreement, fill = certainty_code_combo, label = paste(n_age_class_agreement,n,sep = "/")))+
-  geom_bar(stat='identity')+
-  theme_classic()+
-  scale_fill_viridis_d()+
-  geom_text(vjust = -0.5)
+  facet_grid(rows = "name", scales = "free")+
+  theme_few()+
+  scale_fill_viridis_d()#+
+#  geom_text(vjust = -0.5)
