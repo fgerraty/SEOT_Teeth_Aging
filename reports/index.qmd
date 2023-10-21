@@ -1,6 +1,6 @@
 # Precision of Northern Sea Otter Aging using Tooth Cementum Annuli Analysis
 
-### Introduction to this Analysis
+## Introduction
 
 For the last couple years, we have submitted multiple teeth from the same individual sea otter carcasses to Matson's labs to assess precision of aging via cementum annuli analysis. In this document, I outline preliminary results of this exploratory investigation.
 
@@ -20,11 +20,14 @@ We submitted teeth from four general tooth type categories: Molars, Premolars, C
 |------|------|------|------|------|------|------|
 | 2    | 6    | 6    | 6    | 23   | 22   | 94   |
 
-### Data Import and Cleaning
+## Data Import and Cleaning
 
 In the following code chunk, I import the raw dataset and undergo several cleaning steps including filtering out unknown tooth types, unsuccessfully aged teeth, and individuals with teeth aged in different years (i.e. recaptures).
 
 ```{r}
+#| code-fold: TRUE
+
+
 ###############################################
 # Part 0: Load packages #######################
 ###############################################
@@ -39,7 +42,7 @@ pacman::p_load(packages, character.only = TRUE)
 # Part 1: Load raw dataset ####################
 ###############################################
 
-SEOT_teeth_raw <- read_excel("data/raw/SEOT_teeth_raw.xlsx")
+SEOT_teeth_raw <- read_excel(here::here("data/raw/SEOT_teeth_raw.xlsx"))
 
 ###############################################
 # Part 2: Clean and summarize datasets ########
@@ -139,3 +142,105 @@ tooth_age_comparison <- SEOT_teeth %>%
   #Bring predictors (year, region) into dataframe
   left_join(., unique(SEOT_teeth[,c(1,3,5)]), by="otter_id")
 ```
+
+## Assessing Drivers of Aging Uncertainty
+
+In the cementum annuli aging process, individuals who age the teeth assign a certainty code that is used for assessing the reliability of the age for a given tooth. The certainty codes are:
+
+**A = High:** Reliability ages indicate that the cementum characteristics of the tooth section very nearly match those of the standardized cementum aging model for the species and tooth type. Most certain, within +/- 1 year of reported toothage.
+
+**B = Medium:** There is histological evidence to support the result, and the correct age is expected to be within the range given in the "Notes" field. Usually age within +/- 2 years of reported tooth age.
+
+**C = Low:** Those for which the match between histological evidence and the standardized model is poor. Error is likely, and may occur within the range given.
+
+#### How do the levels of uncertainty break down by our various predictors?
+
+1.  **Tooth Type**
+
+```{r}
+#| code-fold: TRUE
+#| warning: FALSE
+
+###############################################################################
+# Part 2: Uncertainty by Different Variables ##################################
+###############################################################################
+
+pal = c("A" = "#0072b2", "B" = "#009e73", "C" = "#d55e00")
+
+# Uncertainty by tooth type plot and table ------------------------------------
+tooth_type <- SEOT_teeth %>% 
+  group_by(tooth_category, certainty_code) %>% 
+  summarise(n=n()) %>% 
+  mutate(freq = n/sum(n), #calculate frequency of each uncertainty level
+         tooth_category = factor(tooth_category, levels = c("M", "P", "C", "I")),
+         certainty_code = factor(certainty_code, levels = c("C", "B", "A")),
+         n_category = sum(n)) %>% 
+  ungroup() %>% 
+  filter(tooth_category != "UNK") #remove unknown teeth
+
+ggplot(tooth_type, aes(x=tooth_category, y=freq))+
+  geom_bar(aes(fill=certainty_code), position = "fill", stat='identity')+
+  scale_fill_manual(values = pal, breaks = c("A", "B", "C"), labels = c("A (low)", "B (medium)", "C (high)"))+
+  theme_classic()+
+  labs(y="Frequency of Uncertainty Level", x="Tooth Type", fill = "Uncertainty Level")+
+  geom_text(aes(label = paste(n), group = certainty_code), position = position_stack(vjust = 0.5), color = "white")+
+  scale_x_discrete(labels = c("Molar", "Premolar", "Canine", "Incisor"))
+```
+
+2.  **Area**
+
+    ```{r}
+    #| code-fold: TRUE
+    #| warning: FALSE
+
+    #Uncertainty by area ----------------------------------------------------------
+    area <- SEOT_teeth %>% 
+      group_by(area, certainty_code) %>% 
+      summarise(n=n()) %>% 
+      mutate(freq = n/sum(n),
+             n_area = sum(n),
+             certainty_code = factor(certainty_code, levels = c("C", "B", "A"))) %>%  
+      ungroup() 
+
+
+    ggplot(area, aes(x=area, y=freq))+
+      geom_bar(aes(fill=certainty_code), position = "fill", stat='identity')+
+      scale_fill_manual(values = pal, breaks = c("A", "B", "C"), labels = c("A (low)", "B (medium)", "C (high)"))+
+      theme_classic()+
+      geom_text(aes(label = paste(n), group = certainty_code), position = position_stack(vjust = 0.5), color = "white")+
+      labs(y="Frequency of Uncertainty Level", x="Region", fill = "Uncertainty Level")
+      
+
+    ```
+
+3.  **Year**
+
+    ```{r}
+    #| code-fold: TRUE
+    #| warning: FALSE
+
+    #Uncertainty by year ----------------------------------------------------------
+    year <- SEOT_teeth %>% 
+      group_by(year, certainty_code) %>% 
+      summarise(n=n()) %>% 
+      mutate(freq = n/sum(n),
+             year = as.character(year),
+             certainty_code = factor(certainty_code, levels = c("C", "B", "A"))) %>%
+      ungroup() 
+
+
+    ggplot(year, aes(x=year, y=freq))+
+      geom_bar(aes(fill=certainty_code), position = "fill", stat='identity')+
+      scale_fill_manual(values = pal, breaks = c("A", "B", "C"), labels = c("A (low)", "B (medium)", "C (high)"))+
+      theme_classic()+
+      geom_text(aes(label = paste(n), group = certainty_code), position = position_stack(vjust = 0.5), color = "white")+
+      labs(y="Frequency of Uncertainty Level", x="Year", fill = "Uncertainty Level")
+    ```
+
+## Assessing Drivers of Aging Precision
+
+We measured precision in two ways:
+
+-   probability that teeth from the same otter were given the same age via tooth cementum annuli analysis.
+
+-   probability that teeth from the same otter were given the same age class.

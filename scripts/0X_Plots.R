@@ -75,7 +75,10 @@ ggplot(year, aes(x=year, y=freq))+
   labs(y="Frequency of Uncertainty Level", x="Year", fill = "Uncertainty Level")
 
 
-# Explore outputs of the 2-tooth dataset ---------------------------------------
+###############################################################################
+# Part 2: Precision by Different Variables ####################################
+###############################################################################
+
 
 #What proportion of the 2 tooth combinations are the same age?
 sum(tooth_age_comparison$age_agreement)/length(tooth_age_comparison$age_agreement)
