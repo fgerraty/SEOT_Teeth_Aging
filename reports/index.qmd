@@ -6,6 +6,7 @@ toc-depth: 2
 number-sections: true
 format:
   html:
+    self-contained: true
     embed-resources: true
     code-background: true
 ---
@@ -293,6 +294,8 @@ ggplot(tooth_comparison_certainty_summary, aes(certainty_code_combo, freq, fill 
   theme(strip.placement.y = "outside",
         strip.text.y = element_text(face = "bold"))
 ```
+The above plot has certainty levels split by combinations of codes provided by Matsons labs. For example, "AA" indicated both teeth were assigned a certainty code of "A (high)".
+
 
 2.  **Tooth Type Combinations**
 
@@ -328,6 +331,8 @@ ggplot(tooth_combo_certainty, aes(tooth_category_combo, freq, fill = tooth_categ
   theme(strip.placement.y = "outside",
         strip.text.y = element_text(face = "bold"))
 ```
+
+The plot above is split by combinations of tooth types. For example, "MP" indicates one tooth was a molar and one tooth was a premolar.
 
 3.  **Area**
 
