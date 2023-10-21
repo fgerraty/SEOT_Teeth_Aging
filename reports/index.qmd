@@ -1,4 +1,16 @@
-# Precision of Northern Sea Otter Aging using Tooth Cementum Annuli Analysis
+---
+author: "Frankie Gerraty"
+toc: true
+toc-expand: 2
+toc-depth: 2
+number-sections: true
+format:
+  html:
+    embed-resources: true
+    code-background: true
+---
+
+# Precision of Northern Sea Otter Aging using Tooth Cementum Annuli Analysis {.unnumbered}
 
 ## Introduction
 
@@ -6,7 +18,7 @@ For the last couple years, we have submitted multiple teeth from the same indivi
 
 We submitted teeth from four general tooth type categories: Molars, Premolars, Canines, Incisors. These teeth originated from two regions: Katmai National Park and Western Prince William Sound.
 
-#### Sample Size of Aged Teeth by Predictor
+### Sample Size of Aged Teeth by Predictor {.unnumbered}
 
 | Molars | Premolars | Canines | Incisors |
 |--------|-----------|---------|----------|
@@ -153,7 +165,7 @@ In the cementum annuli aging process, individuals who age the teeth assign a cer
 
 **C = Low:** Those for which the match between histological evidence and the standardized model is poor. Error is likely, and may occur within the range given.
 
-#### How do the levels of uncertainty break down by our various predictors?
+### How do the levels of uncertainty break down by our various predictors? {.unnumbered}
 
 1.  **Tooth Type**
 
@@ -245,7 +257,7 @@ We measured precision in two ways:
 
 -   probability that teeth from the same otter were given the same age class.
 
-### How Does Precision Break Down by Predictor?
+### How Does Precision Break Down by Predictor? {.unnumbered}
 
 1.  **Tooth Aging Certainty Score**
 
@@ -380,7 +392,7 @@ ggplot(year_certainty, aes(year, freq, fill = year, label = paste(value, "/", n)
 
 ```
 
-### Modeling Drivers of Precision
+### Modeling Drivers of Precision {.unnumbered}
 
 Unfortunately, due to small sample sizes, perhaps coding errors, and the fact that the drivers of aging precision are not super apparent, none of the models I have generated to date have had significant predictor effects. Here is some of what I have tried:
 
@@ -464,9 +476,8 @@ print(aictab(cand.set = cand.mods,
     null <- glmer(age_class_agreement ~ 1 + (1 | otter_id), family = binomial, data = temp); summary(null)
     ```
 
-```{=html}
 <!-- -->
-```
+
 -   Compare models using AICc
 
 ```{r}
