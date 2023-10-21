@@ -33,7 +33,7 @@ In the following code chunk, I import the raw dataset and undergo several cleani
 ###############################################
 
 # Load packages
-packages<- c("tidyverse", "readxl", "janitor", "lme4", "AICcmodavg", "viridis")
+packages<- c("tidyverse", "readxl", "janitor", "lme4", "AICcmodavg", "viridis", "ggthemes")
 
 pacman::p_load(packages, character.only = TRUE)
 
@@ -244,3 +244,242 @@ We measured precision in two ways:
 -   probability that teeth from the same otter were given the same age via tooth cementum annuli analysis.
 
 -   probability that teeth from the same otter were given the same age class.
+
+### How Does Precision Break Down by Predictor?
+
+1.  **Tooth Aging Certainty Score**
+
+```{r}
+#| code-fold: TRUE
+#| warning: FALSE
+
+###############################################################################
+# Part 2: Precision by Different Variables ####################################
+###############################################################################
+
+tooth_comparison_certainty_summary <- tooth_age_comparison %>% 
+  group_by(certainty_code_combo) %>% 
+  summarise(n = n(),
+            n_age_agreement = sum(age_agreement),
+            n_age_class_agreement = sum(age_class_agreement)) %>% 
+  adorn_totals("row") %>% 
+  ungroup() %>% 
+  pivot_longer(cols = c(n_age_agreement, n_age_class_agreement))%>% 
+  mutate(freq= value/n)
+ 
+fct_labels <- c("n_age_agreement" = "Frequency Age Agreement", "n_age_class_agreement" = "Frequency Age Class Agreement")
+
+
+ggplot(tooth_comparison_certainty_summary, aes(certainty_code_combo, freq, fill = certainty_code_combo, label = paste(value, "/", n)))+
+  geom_bar(stat='identity')+
+  facet_grid(rows = "name", scales = "free", switch="y", labeller = as_labeller(fct_labels))+
+  theme_few()+
+  scale_fill_viridis_d()+
+  geom_text(vjust = -0.5)+
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1)))+
+  labs(y = "", x = "", fill = "Certainty Code \nCombination")+
+  theme(strip.placement.y = "outside",
+        strip.text.y = element_text(face = "bold"))
+```
+
+2.  **Tooth Type Combinations**
+
+```{r}
+#| code-fold: TRUE
+#| warning: FALSE
+
+# Tooth Type Combination ------------------------------------------------------
+
+tooth_combo_certainty <- tooth_age_comparison %>% 
+  group_by(tooth_category_combo) %>% 
+  summarise(n = n(),
+            n_age_agreement = sum(age_agreement),
+            n_age_class_agreement = sum(age_class_agreement)) %>% 
+  mutate(tooth_category_combo = factor(tooth_category_combo, 
+                                             levels = c("MP","MC","MI","PP","PC","PI","CI","UNK"))) %>%  
+  filter(tooth_category_combo != "UNK") %>% 
+  adorn_totals("row") %>% 
+  ungroup() %>% 
+  pivot_longer(cols = c(n_age_agreement, n_age_class_agreement))%>% 
+  mutate(freq= value/n)
+
+
+
+ggplot(tooth_combo_certainty, aes(tooth_category_combo, freq, fill = tooth_category_combo, label = paste(value, "/", n)))+
+  geom_bar(stat='identity')+
+  facet_grid(rows = "name", scales = "free", switch="y", labeller = as_labeller(fct_labels))+
+  theme_few()+
+  scale_fill_viridis_d()+
+  geom_text(vjust = -0.5)+
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1)))+
+  labs(y = "", x = "", fill = "Tooth Type \nCombination")+
+  theme(strip.placement.y = "outside",
+        strip.text.y = element_text(face = "bold"))
+```
+
+3.  **Area**
+
+```{r}
+#| code-fold: TRUE
+#| warning: FALSE
+
+area_certainty <- tooth_age_comparison %>% 
+  group_by(area) %>% 
+  summarise(n = n(),
+            n_age_agreement = sum(age_agreement),
+            n_age_class_agreement = sum(age_class_agreement)) %>% 
+  adorn_totals("row") %>% 
+  mutate(area = factor(area, levels = c("KATM", "WPWS", "Total"))) %>% 
+  ungroup() %>% 
+  pivot_longer(cols = c(n_age_agreement, n_age_class_agreement))%>% 
+  mutate(freq= value/n)
+
+
+
+ggplot(area_certainty, aes(area, freq, fill = area, label = paste(value, "/", n)))+
+  geom_bar(stat='identity')+
+  facet_grid(rows = "name", scales = "free", switch="y", labeller = as_labeller(fct_labels))+
+  theme_few()+
+  scale_fill_viridis_d()+
+  geom_text(vjust = -0.5)+
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1)))+
+  labs(y = "", x = "", fill = "Area")+
+  theme(strip.placement.y = "outside",
+        strip.text.y = element_text(face = "bold"))
+```
+
+4.  **Year**
+
+```{r}
+#| code-fold: TRUE
+#| warning: FALSE
+
+# Year ------------------------------------------------------
+
+year_certainty <- tooth_age_comparison %>% 
+  group_by(year) %>% 
+  summarise(n = n(),
+            n_age_agreement = sum(age_agreement),
+            n_age_class_agreement = sum(age_class_agreement)) %>% 
+  adorn_totals("row") %>% 
+  ungroup() %>% 
+  pivot_longer(cols = c(n_age_agreement, n_age_class_agreement))%>% 
+  mutate(freq= value/n)
+
+
+ggplot(year_certainty, aes(year, freq, fill = year, label = paste(value, "/", n)))+
+  geom_bar(stat='identity')+
+  facet_grid(rows = "name", scales = "free", switch="y", labeller = as_labeller(fct_labels))+
+  theme_few()+
+  scale_fill_viridis_d()+
+  geom_text(vjust = -0.5)+
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1)))+
+  labs(y = "", x = "", fill = "Year")+
+  theme(strip.placement.y = "outside",
+        strip.text.y = element_text(face = "bold"))
+
+```
+
+### Modeling Drivers of Precision
+
+Unfortunately, due to small sample sizes, perhaps coding errors, and the fact that the drivers of aging precision are not super apparent, none of the models I have generated to date have had significant predictor effects. Here is some of what I have tried:
+
+**Age Agreement**
+
+Assessinfg predictors of age agreement using mixed-effects logistic regression (binomial distribution, logit link) with otter_id as a random effect.
+
+-   Generate Models
+
+```{r}
+#| code-fold: TRUE
+#| warning: FALSE
+#| output: FALSE
+
+temp <- tooth_age_comparison %>% 
+#  filter(certainty_code_combo == "AA"|
+#           certainty_code_combo == "AB"|
+#           certainty_code_combo == "BB") %>% 
+  filter(tooth_category_combo != "UNK") %>% 
+  filter(year == "2019" |
+           year == "2021" |
+           year == "2022") %>% 
+  mutate(year = as.character(year))
+
+# Test for correlations among predictors ---------------------------------------
+chisq.test(temp$certainty_category, temp$tooth_category_combo, simulate.p.value = TRUE)
+chisq.test(temp$certainty_category, temp$area, simulate.p.value = TRUE)
+chisq.test(temp$certainty_category, temp$year, simulate.p.value = TRUE)
+chisq.test(temp$tooth_category_combo, temp$area, simulate.p.value = TRUE)
+chisq.test(temp$tooth_category_combo, temp$year, simulate.p.value = TRUE)
+chisq.test(temp$area, temp$year, simulate.p.value = TRUE)
+#As we can tell, "area" and "year" are significantly correlated, and "tooth_category_combo" and "year are significantly correlated
+
+#Generate models with non-colinear predictors ----------------------------------
+f1 <- glmer(age_agreement ~ certainty_category + (1 | otter_id), family = binomial, data = temp);summary(f1)
+f2 <- glmer(age_agreement ~ tooth_category_combo + (1 | otter_id), family = binomial, data = temp); summary(f2)
+f3 <- glmer(age_agreement ~ area + (1 | otter_id), family = binomial, data = temp); summary(f3)
+f4 <- glmer(age_agreement ~ year + (1 | otter_id), family = binomial, data = temp); summary(f4)
+f5 <- glmer(age_agreement ~ certainty_category + area + (1 | otter_id), family = binomial, data = temp); summary(f5)
+f6 <- glmer(age_agreement ~ certainty_category + year + (1 | otter_id), family = binomial, data = temp); summary(f6)
+null <- glmer(age_agreement ~ 1 + (1 | otter_id), family = binomial, data = temp); summary(null)
+
+#These models threw errors! 
+#f5 <- glmer(age_agreement ~ certainty_category + tooth_category_combo + (1 | otter_id), family = binomial, data = temp); summary(f5)
+#f8 <- glmer(age_agreement ~ tooth_category_combo + area + (1 | otter_id), family = binomial, data = temp); summary(f8)
+#f11 <- glmer(age_agreement ~ certainty_category + tooth_category_combo + area + (1 | otter_id), family = binomial, data = temp); summary(f11)
+```
+
+-   Compare models using AICc
+
+```{r}
+cand.mod.names <- c("f1", "f2", "f3", "f4", "f5", "f6", "null") 
+cand.mods <- list( ) 
+
+# This function fills the list by model names
+for(i in 1:length(cand.mod.names)) {
+  cand.mods[[i]] <- get(cand.mod.names[i]) }
+
+# Function aictab does the AICc-based model comparison
+print(aictab(cand.set = cand.mods, 
+             modnames = cand.mod.names))
+```
+
+**Age Class Agreement**
+
+-   Generate Models
+
+    ```{r}
+    #| code-fold: TRUE
+    #| warning: FALSE
+    #| output: FALSE
+
+    #Generate models with non-colinear predictors
+
+    g1 <- glmer(age_class_agreement ~ certainty_category + (1 | otter_id), family = binomial, data = temp);summary(g1)
+    g2 <- glmer(age_class_agreement ~ tooth_category_combo + (1 | otter_id), family = binomial, data = temp); summary(g2)
+    g3 <- glmer(age_class_agreement ~ area + (1 | otter_id), family = binomial, data = temp); summary(g3)
+    g4 <- glmer(age_class_agreement ~ year + (1 | otter_id), family = binomial, data = temp); summary(g4)
+    g5 <- glmer(age_class_agreement ~ certainty_category + area + (1 | otter_id), family = binomial, data = temp); summary(g5)
+    g6 <- glmer(age_class_agreement ~ certainty_category + year + (1 | otter_id), family = binomial, data = temp); summary(g6)
+    null <- glmer(age_class_agreement ~ 1 + (1 | otter_id), family = binomial, data = temp); summary(null)
+    ```
+
+```{=html}
+<!-- -->
+```
+-   Compare models using AICc
+
+```{r}
+cand.mod.names <- c("g1", "g2", "g3", "g4", "g5", "g6", "null")
+cand.mods <- list( ) 
+
+# This function fills the list by model names
+for(i in 1:length(cand.mod.names)) {
+  cand.mods[[i]] <- get(cand.mod.names[i]) }
+
+# Function aictab does the AICc-based model comparison
+print(aictab(cand.set = cand.mods, 
+             modnames = cand.mod.names))
+```
+
+These outputs suggest that none of the predictors performed significantly better than a null model. ....not exactly sure where to go from here.

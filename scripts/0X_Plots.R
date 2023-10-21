@@ -79,12 +79,7 @@ ggplot(year, aes(x=year, y=freq))+
 # Part 2: Precision by Different Variables ####################################
 ###############################################################################
 
-
-#What proportion of the 2 tooth combinations are the same age?
-sum(tooth_age_comparison$age_agreement)/length(tooth_age_comparison$age_agreement)
-
-#What proportion of the 2 tooth combinations are the same age class?
-sum(tooth_age_comparison$age_class_agreement)/length(tooth_age_comparison$age_class_agreement)
+# Tooth Aging Certainty Code Combination --------------------------------------
 
 tooth_comparison_certainty_summary <- tooth_age_comparison %>% 
   group_by(certainty_code_combo) %>% 
@@ -92,17 +87,103 @@ tooth_comparison_certainty_summary <- tooth_age_comparison %>%
             n_age_agreement = sum(age_agreement),
             n_age_class_agreement = sum(age_class_agreement)) %>% 
   adorn_totals("row") %>% 
-  mutate(freq_age_agreement = n_age_agreement/n,
-         freq_age_class_agreement = n_age_class_agreement/n) %>% 
-  ungroup() %>% pivot_longer(cols = c(freq_age_agreement, freq_age_class_agreement))
+  ungroup() %>% 
+  pivot_longer(cols = c(n_age_agreement, n_age_class_agreement))%>% 
+  mutate(freq= value/n)
+ 
+fct_labels <- c("n_age_agreement" = "Frequency Age Agreement", "n_age_class_agreement" = "Frequency Age Class Agreement")
 
 
-#NOTE: N values are wrong!!!
-ggplot(tooth_comparison_certainty_summary, aes(certainty_code_combo, value, fill = certainty_code_combo
-                                #               ,label = value
-                                               ))+
+ggplot(tooth_comparison_certainty_summary, aes(certainty_code_combo, freq, fill = certainty_code_combo, label = paste(value, "/", n)))+
   geom_bar(stat='identity')+
-  facet_grid(rows = "name", scales = "free")+
+  facet_grid(rows = "name", scales = "free", switch="y", labeller = as_labeller(fct_labels))+
   theme_few()+
-  scale_fill_viridis_d()#+
-#  geom_text(vjust = -0.5)
+  scale_fill_viridis_d()+
+  geom_text(vjust = -0.5)+
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1)))+
+  labs(y = "", x = "", fill = "Certainty Code \nCombination")+
+  theme(strip.placement.y = "outside",
+        strip.text.y = element_text(face = "bold"))
+
+  
+# Tooth Type Combination ------------------------------------------------------
+
+tooth_combo_certainty <- tooth_age_comparison %>% 
+  group_by(tooth_category_combo) %>% 
+  summarise(n = n(),
+            n_age_agreement = sum(age_agreement),
+            n_age_class_agreement = sum(age_class_agreement)) %>% 
+  mutate(tooth_category_combo = factor(tooth_category_combo, 
+                                             levels = c("MP","MC","MI","PP","PC","PI","CI","UNK"))) %>%  
+  filter(tooth_category_combo != "UNK") %>% 
+  adorn_totals("row") %>% 
+  ungroup() %>% 
+  pivot_longer(cols = c(n_age_agreement, n_age_class_agreement))%>% 
+  mutate(freq= value/n)
+
+
+
+ggplot(tooth_combo_certainty, aes(tooth_category_combo, freq, fill = tooth_category_combo, label = paste(value, "/", n)))+
+  geom_bar(stat='identity')+
+  facet_grid(rows = "name", scales = "free", switch="y", labeller = as_labeller(fct_labels))+
+  theme_few()+
+  scale_fill_viridis_d()+
+  geom_text(vjust = -0.5)+
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1)))+
+  labs(y = "", x = "", fill = "Tooth Type \nCombination")+
+  theme(strip.placement.y = "outside",
+        strip.text.y = element_text(face = "bold"))
+
+
+# Area ------------------------------------------------------
+
+
+area_certainty <- tooth_age_comparison %>% 
+  group_by(area) %>% 
+  summarise(n = n(),
+            n_age_agreement = sum(age_agreement),
+            n_age_class_agreement = sum(age_class_agreement)) %>% 
+  adorn_totals("row") %>% 
+  mutate(area = factor(area, levels = c("KATM", "WPWS", "Total"))) %>% 
+  ungroup() %>% 
+  pivot_longer(cols = c(n_age_agreement, n_age_class_agreement))%>% 
+  mutate(freq= value/n)
+
+
+
+ggplot(area_certainty, aes(area, freq, fill = area, label = paste(value, "/", n)))+
+  geom_bar(stat='identity')+
+  facet_grid(rows = "name", scales = "free", switch="y", labeller = as_labeller(fct_labels))+
+  theme_few()+
+  scale_fill_viridis_d()+
+  geom_text(vjust = -0.5)+
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1)))+
+  labs(y = "", x = "", fill = "Area")+
+  theme(strip.placement.y = "outside",
+        strip.text.y = element_text(face = "bold"))
+
+
+
+# Year ------------------------------------------------------
+
+year_certainty <- tooth_age_comparison %>% 
+  group_by(year) %>% 
+  summarise(n = n(),
+            n_age_agreement = sum(age_agreement),
+            n_age_class_agreement = sum(age_class_agreement)) %>% 
+  adorn_totals("row") %>% 
+  ungroup() %>% 
+  pivot_longer(cols = c(n_age_agreement, n_age_class_agreement))%>% 
+  mutate(freq= value/n)
+
+
+ggplot(year_certainty, aes(year, freq, fill = year, label = paste(value, "/", n)))+
+  geom_bar(stat='identity')+
+  facet_grid(rows = "name", scales = "free", switch="y", labeller = as_labeller(fct_labels))+
+  theme_few()+
+  scale_fill_viridis_d()+
+  geom_text(vjust = -0.5)+
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1)))+
+  labs(y = "", x = "", fill = "Year")+
+  theme(strip.placement.y = "outside",
+        strip.text.y = element_text(face = "bold"))

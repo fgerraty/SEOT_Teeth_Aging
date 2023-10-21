@@ -43,6 +43,7 @@ chisq.test(temp$area, temp$year, simulate.p.value = TRUE)
 
 #Generate models with non-colinear predictors ----------------------------------
 f1 <- glmer(age_agreement ~ certainty_category + (1 | otter_id), family = binomial, data = temp);summary(f1)
+fx <- glmer(age_agreement ~ certainty_level_binary + (1 | otter_id), family = binomial, data = temp);summary(fx)
 f2 <- glmer(age_agreement ~ tooth_category_combo + (1 | otter_id), family = binomial, data = temp); summary(f2)
 f3 <- glmer(age_agreement ~ area + (1 | otter_id), family = binomial, data = temp); summary(f3)
 f4 <- glmer(age_agreement ~ year + (1 | otter_id), family = binomial, data = temp); summary(f4)
@@ -56,7 +57,7 @@ null <- glmer(age_agreement ~ 1 + (1 | otter_id), family = binomial, data = temp
 #f11 <- glmer(age_agreement ~ certainty_category + tooth_category_combo + area + (1 | otter_id), family = binomial, data = temp); summary(f11)
 
 
-cand.mod.names <- c("f1", "f2", "f3", "f4", "f5", "f6", "null") 
+cand.mod.names <- c("f1", "fx", "f2", "f3", "f4", "f5", "f6", "null") 
 cand.mods <- list( ) 
 
 # This function fills the list by model names
@@ -106,4 +107,39 @@ for(i in 1:length(cand.mod.names)) {
 # Function aictab does the AICc-based model comparison
 print(aictab(cand.set = cand.mods, 
              modnames = cand.mod.names))
+
+
+
+
+
+
+
+
+
+#Generate models with non-colinear predictors ----------------------------------
+f1 <- glm(age_agreement ~ certainty_category , family = binomial, data = temp);summary(f1)
+f2 <- glm(age_agreement ~ tooth_category_combo , family = binomial, data = temp); summary(f2)
+f3 <- glm(age_agreement ~ area , family = binomial, data = temp); summary(f3)
+f4 <- glm(age_agreement ~ year , family = binomial, data = temp); summary(f4)
+f5 <- glm(age_agreement ~ certainty_category + area , family = binomial, data = temp); summary(f5)
+f6 <- glm(age_agreement ~ certainty_category + year , family = binomial, data = temp); summary(f6)
+null <- glm(age_agreement ~ 1 , family = binomial, data = temp); summary(null)
+
+#These models threw errors! 
+#f5 <- glmer(age_agreement ~ certainty_category + tooth_category_combo + (1 | otter_id), family = binomial, data = temp); summary(f5)
+#f8 <- glmer(age_agreement ~ tooth_category_combo + area + (1 | otter_id), family = binomial, data = temp); summary(f8)
+#f11 <- glmer(age_agreement ~ certainty_category + tooth_category_combo + area + (1 | otter_id), family = binomial, data = temp); summary(f11)
+
+
+cand.mod.names <- c("f1", "fx", "f2", "f3", "f4", "f5", "f6", "null") 
+cand.mods <- list( ) 
+
+# This function fills the list by model names
+for(i in 1:length(cand.mod.names)) {
+  cand.mods[[i]] <- get(cand.mod.names[i]) }
+
+# Function aictab does the AICc-based model comparison
+print(aictab(cand.set = cand.mods, 
+             modnames = cand.mod.names))
+
 
