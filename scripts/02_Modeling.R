@@ -42,19 +42,19 @@ chisq.test(temp$area, temp$year, simulate.p.value = TRUE)
 #As we can tell, "area" and "year" are significantly correlated, and "tooth_category_combo" and "year are significantly correlated
 
 #Generate models with non-colinear predictors ----------------------------------
-f1 <- glmer(age_agreement ~ certainty_category + (1 | otter_id), family = binomial, data = temp);summary(f1)
-fx <- glmer(age_agreement ~ certainty_level_binary + (1 | otter_id), family = binomial, data = temp);summary(fx)
-f2 <- glmer(age_agreement ~ tooth_category_combo + (1 | otter_id), family = binomial, data = temp); summary(f2)
-f3 <- glmer(age_agreement ~ area + (1 | otter_id), family = binomial, data = temp); summary(f3)
-f4 <- glmer(age_agreement ~ year + (1 | otter_id), family = binomial, data = temp); summary(f4)
-f5 <- glmer(age_agreement ~ certainty_category + area + (1 | otter_id), family = binomial, data = temp); summary(f5)
-f6 <- glmer(age_agreement ~ certainty_category + year + (1 | otter_id), family = binomial, data = temp); summary(f6)
-null <- glmer(age_agreement ~ 1 + (1 | otter_id), family = binomial, data = temp); summary(null)
+f1 <- glmer(age_agreement ~ certainty_category + (1 | otter_id), data = temp);summary(f1)
+fx <- glmer(age_agreement ~ certainty_level_binary + (1 | otter_id), data = temp);summary(fx)
+f2 <- glmer(age_agreement ~ tooth_category_combo + (1 | otter_id), data = temp); summary(f2)
+f3 <- glmer(age_agreement ~ area + (1 | otter_id), data = temp); summary(f3)
+f4 <- glmer(age_agreement ~ year + (1 | otter_id), data = temp); summary(f4)
+f5 <- glmer(age_agreement ~ certainty_category + area + (1 | otter_id), data = temp); summary(f5)
+f6 <- glmer(age_agreement ~ certainty_category + year + (1 | otter_id), data = temp); summary(f6)
+null <- glmer(age_agreement ~ 1 + (1 | otter_id), data = temp); summary(null)
 
 #These models threw errors! 
-#f5 <- glmer(age_agreement ~ certainty_category + tooth_category_combo + (1 | otter_id), family = binomial, data = temp); summary(f5)
-#f8 <- glmer(age_agreement ~ tooth_category_combo + area + (1 | otter_id), family = binomial, data = temp); summary(f8)
-#f11 <- glmer(age_agreement ~ certainty_category + tooth_category_combo + area + (1 | otter_id), family = binomial, data = temp); summary(f11)
+#f5 <- glmer(age_agreement ~ certainty_category + tooth_category_combo + (1 | otter_id), data = temp); summary(f5)
+#f8 <- glmer(age_agreement ~ tooth_category_combo + area + (1 | otter_id), data = temp); summary(f8)
+#f11 <- glmer(age_agreement ~ certainty_category + tooth_category_combo + area + (1 | otter_id), data = temp); summary(f11)
 
 
 cand.mod.names <- c("f1", "fx", "f2", "f3", "f4", "f5", "f6", "null") 
@@ -83,18 +83,18 @@ print(aictab(cand.set = cand.mods,
 
 #Generate models with non-colinear predictors
 
-g1 <- glmer(age_class_agreement ~ certainty_category + (1 | otter_id), family = binomial, data = temp);summary(g1)
-g2 <- glmer(age_class_agreement ~ tooth_category_combo + (1 | otter_id), family = binomial, data = temp); summary(g2)
-g3 <- glmer(age_class_agreement ~ area + (1 | otter_id), family = binomial, data = temp); summary(g3)
-g4 <- glmer(age_class_agreement ~ year + (1 | otter_id), family = binomial, data = temp); summary(g4)
-g5 <- glmer(age_class_agreement ~ certainty_category + area + (1 | otter_id), family = binomial, data = temp); summary(g5)
-g6 <- glmer(age_class_agreement ~ certainty_category + year + (1 | otter_id), family = binomial, data = temp); summary(g6)
-null <- glmer(age_class_agreement ~ 1 + (1 | otter_id), family = binomial, data = temp); summary(null)
+g1 <- glmer(age_class_agreement ~ certainty_category + (1 | otter_id), data = temp);summary(g1)
+g2 <- glmer(age_class_agreement ~ tooth_category_combo + (1 | otter_id), data = temp); summary(g2)
+g3 <- glmer(age_class_agreement ~ area + (1 | otter_id), data = temp); summary(g3)
+g4 <- glmer(age_class_agreement ~ year + (1 | otter_id), data = temp); summary(g4)
+g5 <- glmer(age_class_agreement ~ certainty_category + area + (1 | otter_id), data = temp); summary(g5)
+g6 <- glmer(age_class_agreement ~ certainty_category + year + (1 | otter_id), data = temp); summary(g6)
+null <- glmer(age_class_agreement ~ 1 + (1 | otter_id), data = temp); summary(null)
 
 #These models threw errors! 
-#f5 <- glmer(age_class_agreement ~ certainty_category + tooth_category_combo + (1 | otter_id), family = binomial, data = temp); summary(f5)
-#f8 <- glmer(age_class_agreement ~ tooth_category_combo + area + (1 | otter_id), family = binomial, data = temp); summary(f8)
-#f11 <- glmer(age_class_agreement ~ certainty_category + tooth_category_combo + area + (1 | otter_id), family = binomial, data = temp); summary(f11)
+#f5 <- glmer(age_class_agreement ~ certainty_category + tooth_category_combo + (1 | otter_id), data = temp); summary(f5)
+#f8 <- glmer(age_class_agreement ~ tooth_category_combo + area + (1 | otter_id), data = temp); summary(f8)
+#f11 <- glmer(age_class_agreement ~ certainty_category + tooth_category_combo + area + (1 | otter_id), data = temp); summary(f11)
 
 
 cand.mod.names <- c("g1", "g2", "g3", "g4", "g5", "g6", "null") 
@@ -109,29 +109,23 @@ print(aictab(cand.set = cand.mods,
              modnames = cand.mod.names))
 
 
+#Diff Age
 
-
-
-
-
-
-
-#Generate models with non-colinear predictors ----------------------------------
-f1 <- glm(age_agreement ~ certainty_category , family = binomial, data = temp);summary(f1)
-f2 <- glm(age_agreement ~ tooth_category_combo , family = binomial, data = temp); summary(f2)
-f3 <- glm(age_agreement ~ area , family = binomial, data = temp); summary(f3)
-f4 <- glm(age_agreement ~ year , family = binomial, data = temp); summary(f4)
-f5 <- glm(age_agreement ~ certainty_category + area , family = binomial, data = temp); summary(f5)
-f6 <- glm(age_agreement ~ certainty_category + year , family = binomial, data = temp); summary(f6)
-null <- glm(age_agreement ~ 1 , family = binomial, data = temp); summary(null)
+h1 <- glmer.nb(age_diff ~ certainty_category + (1 | otter_id), data = tooth_age_comparison);summary(h1)
+h2 <- glmer.nb(age_diff ~ tooth_category_combo + (1 | otter_id), data = tooth_age_comparison); summary(h2)
+h3 <- glmer.nb(age_diff ~ area + (1 | otter_id), data = tooth_age_comparison); summary(h3)
+h4 <- glmer.nb(age_diff ~ year + (1 | otter_id), data = tooth_age_comparison); summary(h4)
+h5 <- glmer.nb(age_diff ~ certainty_category + area + (1 | otter_id), data = tooth_age_comparison); summary(h5)
+h6 <- glmer.nb(age_diff ~ certainty_category + year + (1 | otter_id), data = tooth_age_comparison); summary(h6)
+null <- glmer.nb(age_diff ~ 1 + (1 | otter_id), data = tooth_age_comparison); summary(null)
 
 #These models threw errors! 
-#f5 <- glmer(age_agreement ~ certainty_category + tooth_category_combo + (1 | otter_id), family = binomial, data = temp); summary(f5)
-#f8 <- glmer(age_agreement ~ tooth_category_combo + area + (1 | otter_id), family = binomial, data = temp); summary(f8)
-#f11 <- glmer(age_agreement ~ certainty_category + tooth_category_combo + area + (1 | otter_id), family = binomial, data = temp); summary(f11)
+#f5 <- glmer.nb(age_diff ~ certainty_category + tooth_category_combo + (1 | otter_id), data = temp); summary(f5)
+#f8 <- glmer.nb(age_diff ~ tooth_category_combo + area + (1 | otter_id), data = temp); summary(f8)
+#f11 <- glmer.nb(age_diff ~ certainty_category + tooth_category_combo + area + (1 | otter_id), data = temp); summary(f11)
 
 
-cand.mod.names <- c("f1", "fx", "f2", "f3", "f4", "f5", "f6", "null") 
+cand.mod.names <- c("h1", "h2", "h3", "h4", "h5", "h6", "null") 
 cand.mods <- list( ) 
 
 # This function fills the list by model names
@@ -141,5 +135,4 @@ for(i in 1:length(cand.mod.names)) {
 # Function aictab does the AICc-based model comparison
 print(aictab(cand.set = cand.mods, 
              modnames = cand.mod.names))
-
 

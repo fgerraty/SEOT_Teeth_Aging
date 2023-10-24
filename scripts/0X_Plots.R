@@ -187,3 +187,34 @@ ggplot(year_certainty, aes(year, freq, fill = year, label = paste(value, "/", n)
   labs(y = "", x = "", fill = "Year")+
   theme(strip.placement.y = "outside",
         strip.text.y = element_text(face = "bold"))
+
+
+###############################################################################
+# Part 3: Age Difference ######################################################
+###############################################################################
+
+age_diff_breakdown <- tooth_age_comparison %>%
+  group_by(age_diff) %>% 
+  mutate()
+  
+
+ggplot(tooth_age_comparison, aes(x=age_diff, fill = certainty_code_combo))+
+  geom_histogram()+
+  scale_fill_viridis_d()
+  
+ggplot(tooth_age_comparison, aes(x=age_diff, fill = factor(age1)))+
+  geom_histogram()+
+  scale_fill_viridis_d()
+
+
+frequency_disagreement <- tooth_age_comparison %>% 
+  mutate(mean_age = (age1+age2)/2) %>% 
+  group_by(mean_age,certainty_code_combo) %>% 
+  summarise(freq_disagreement = 1-(sum(age_class_agreement)/n()))
+
+
+ggplot(frequency_disagreement, aes(x=mean_age, y=freq_disagreement, fill=certainty_code_combo))+
+  geom_bar(stat="identity")+
+  theme_few()+
+  scale_fill_viridis_d()
+  

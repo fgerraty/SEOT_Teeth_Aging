@@ -62,6 +62,7 @@ tooth_age_comparison <- SEOT_teeth %>%
   #Extract values from list objects
   mutate(age1 = age[,1],
          age2 = age[,2],
+         age_diff = abs(age1-age2),
          age_class1 = age_class[,1],
          age_class2 = age_class[,2],
          certainty_code1 = certainty_code[,1],
