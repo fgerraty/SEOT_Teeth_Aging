@@ -108,6 +108,7 @@ tooth_age_comparison <- SEOT_teeth %>%
   #Extract values from list objects
   mutate(age1 = age[,1],
          age2 = age[,2],
+         age_diff = abs(age1-age2),
          age_class1 = age_class[,1],
          age_class2 = age_class[,2],
          certainty_code1 = certainty_code[,1],
@@ -151,12 +152,12 @@ tooth_age_comparison <- SEOT_teeth %>%
     tooth_category1 == "I" & tooth_category2 == "I" ~ "II",
     tooth_category1 == "UNK" | tooth_category2 == "UNK" ~ "UNK",
     TRUE ~ NA_character_))%>% 
-  mutate(certainty_category = if_else(certainty_code_combo == "AA", "High", "Low")) %>% 
+  mutate(certainty_category = if_else(age_diff <= 2, "High", "Low")) %>% 
   #Bring predictors (year, region) into dataframe
   left_join(., unique(SEOT_teeth[,c(1,3,5)]), by="otter_id")
 ```
 
-## Assessing Drivers of Aging Uncertainty
+## Assessing Drivers of Aging Certainty
 
 In the cementum annuli aging process, individuals who age the teeth assign a certainty code that is used for assessing the reliability of the age for a given tooth. The certainty codes are:
 
@@ -166,7 +167,7 @@ In the cementum annuli aging process, individuals who age the teeth assign a cer
 
 **C = Low:** Those for which the match between histological evidence and the standardized model is poor. Error is likely, and may occur within the range given.
 
-### How do the levels of uncertainty break down by our various predictors? {.unnumbered}
+### How do the levels of certainty break down by our various predictors? {.unnumbered}
 
 1.  **Tooth Type**
 
@@ -175,16 +176,16 @@ In the cementum annuli aging process, individuals who age the teeth assign a cer
 #| warning: FALSE
 
 ###############################################################################
-# Part 2: Uncertainty by Different Variables ##################################
+# Part 2: Certainty by Different Variables ##################################
 ###############################################################################
 
 pal = c("A" = "#0072b2", "B" = "#009e73", "C" = "#d55e00")
 
-# Uncertainty by tooth type plot and table ------------------------------------
+# Certainty by tooth type plot and table ------------------------------------
 tooth_type <- SEOT_teeth %>% 
   group_by(tooth_category, certainty_code) %>% 
   summarise(n=n()) %>% 
-  mutate(freq = n/sum(n), #calculate frequency of each uncertainty level
+  mutate(freq = n/sum(n), #calculate frequency of each certainty level
          tooth_category = factor(tooth_category, levels = c("M", "P", "C", "I")),
          certainty_code = factor(certainty_code, levels = c("C", "B", "A")),
          n_category = sum(n)) %>% 
@@ -193,9 +194,9 @@ tooth_type <- SEOT_teeth %>%
 
 ggplot(tooth_type, aes(x=tooth_category, y=freq))+
   geom_bar(aes(fill=certainty_code), position = "fill", stat='identity')+
-  scale_fill_manual(values = pal, breaks = c("A", "B", "C"), labels = c("A (low)", "B (medium)", "C (high)"))+
+  scale_fill_manual(values = pal, breaks = c("A", "B", "C"), labels = c("A (high)", "B (medium)", "C (low)"))+
   theme_classic()+
-  labs(y="Frequency of Uncertainty Level", x="Tooth Type", fill = "Uncertainty Level")+
+  labs(y="Frequency of Certainty Level", x="Tooth Type", fill = "Certainty Level")+
   geom_text(aes(label = paste(n), group = certainty_code), position = position_stack(vjust = 0.5), color = "white")+
   scale_x_discrete(labels = c("Molar", "Premolar", "Canine", "Incisor"))
 ```
@@ -206,7 +207,7 @@ ggplot(tooth_type, aes(x=tooth_category, y=freq))+
     #| code-fold: TRUE
     #| warning: FALSE
 
-    #Uncertainty by area ----------------------------------------------------------
+    #Certainty by area ----------------------------------------------------------
     area <- SEOT_teeth %>% 
       group_by(area, certainty_code) %>% 
       summarise(n=n()) %>% 
@@ -218,10 +219,10 @@ ggplot(tooth_type, aes(x=tooth_category, y=freq))+
 
     ggplot(area, aes(x=area, y=freq))+
       geom_bar(aes(fill=certainty_code), position = "fill", stat='identity')+
-      scale_fill_manual(values = pal, breaks = c("A", "B", "C"), labels = c("A (low)", "B (medium)", "C (high)"))+
+      scale_fill_manual(values = pal, breaks = c("A", "B", "C"), labels = c("A (high)", "B (medium)", "C (low)"))+
       theme_classic()+
       geom_text(aes(label = paste(n), group = certainty_code), position = position_stack(vjust = 0.5), color = "white")+
-      labs(y="Frequency of Uncertainty Level", x="Region", fill = "Uncertainty Level")
+      labs(y="Frequency of Certainty Level", x="Region", fill = "Certainty Level")
       
 
     ```
@@ -232,7 +233,7 @@ ggplot(tooth_type, aes(x=tooth_category, y=freq))+
     #| code-fold: TRUE
     #| warning: FALSE
 
-    #Uncertainty by year ----------------------------------------------------------
+    #Certainty by year ----------------------------------------------------------
     year <- SEOT_teeth %>% 
       group_by(year, certainty_code) %>% 
       summarise(n=n()) %>% 
@@ -247,12 +248,12 @@ ggplot(tooth_type, aes(x=tooth_category, y=freq))+
       scale_fill_manual(values = pal, breaks = c("A", "B", "C"), labels = c("A (low)", "B (medium)", "C (high)"))+
       theme_classic()+
       geom_text(aes(label = paste(n), group = certainty_code), position = position_stack(vjust = 0.5), color = "white")+
-      labs(y="Frequency of Uncertainty Level", x="Year", fill = "Uncertainty Level")
+      labs(y="Frequency of Certainty Level", x="Year", fill = "Certainty Level")
     ```
 
 ## Assessing Drivers of Aging Precision
 
-We measured precision in two ways:
+We started by measuring precision in two ways:
 
 -   probability that teeth from the same otter were given the same age via tooth cementum annuli analysis.
 
@@ -294,8 +295,8 @@ ggplot(tooth_comparison_certainty_summary, aes(certainty_code_combo, freq, fill 
   theme(strip.placement.y = "outside",
         strip.text.y = element_text(face = "bold"))
 ```
-The above plot has certainty levels split by combinations of codes provided by Matsons labs. For example, "AA" indicated both teeth were assigned a certainty code of "A (high)".
 
+The above plot has certainty levels split by combinations of codes provided by Matsons labs. For example, "AA" indicated both teeth were assigned a certainty code of "A (high)".
 
 2.  **Tooth Type Combinations**
 
@@ -397,13 +398,138 @@ ggplot(year_certainty, aes(year, freq, fill = year, label = paste(value, "/", n)
 
 ```
 
-### Modeling Drivers of Precision {.unnumbered}
+### Alternative Measures of Precision: Age Difference {.unnumbered}
+
+Perhaps frequency of age and/or age class agreement are not the best metrics of precision. It is likely that the frequency of age and age class agreement are influenced by multiple variables (for example, animal age).
+
+To assess whether this is the case, lets look at the frequency of age and age class *disagreement* by the age of a randomly selected individual.
+
+```{r}
+#| code-fold: TRUE
+probability_age_disagreement <- tooth_age_comparison %>% 
+  group_by(age1) %>% 
+  summarise(freq_disagreement = (n()-sum(age_agreement))/n())
+
+ggplot(probability_age_disagreement, aes(x=age1, y=freq_disagreement))+
+  geom_bar(stat = "identity")+
+  theme_few()+
+  labs(y="Frequency of Age Disagreement", x="Age (randomly selected otter)")
+```
+
+There is no obvious trend in age disagreement here, as far as I can tell. But let's look at the frequency of age class disagreement:
+
+```{r}
+#| code-fold: TRUE
+probability_age_class_disagreement <- tooth_age_comparison %>% 
+  group_by(age1) %>% 
+  summarise(freq_disagreement = (n()-sum(age_class_agreement))/n())
+
+ggplot(probability_age_class_disagreement, aes(x=age1, y=freq_disagreement))+
+  geom_bar(stat = "identity")+
+  theme_few()+
+  labs(y="Frequency of Age Class Disagreement", x="Age (randomly selected otter)")
+```
+
+As we can see, there is a somewhat bimodal distribution here with elevated values around the two age class cutoffs.
+
+An alternative way to look at precision would be to examine the difference in ages (i.e., 1yr, 2yr, 3yr, etc.). This may be a useful way to break down the data, because we know that Matson's labs tooth scoring does have different windows of certainty.
+
+1.  **Age Difference by Tooth Type Combination**
+
+    ```{r}
+    #| code-fold: TRUE
+    age_diff <- tooth_age_comparison %>% 
+      group_by(certainty_code_combo) %>% 
+      summarise(mean_diff = mean(age_diff), 
+             se_diff = sd(age_diff)/sqrt(length(age_diff)))
+
+    ggplot(age_diff, aes(x=certainty_code_combo, y=mean_diff, fill = certainty_code_combo))+
+      geom_bar(stat = "identity")+
+      theme_few()+
+      scale_fill_viridis_d()+
+      geom_errorbar(aes(ymin = mean_diff-se_diff, ymax = mean_diff+se_diff, width = .2))+
+      labs(y = "Age Difference", x = "",fill = "Certainty Code \nCombination")
+    ```
+
+    The values plotted above are the means ± SE. As we can see, the mean age differences for "AA", "AB", and "BB" are below 2. This is reassuring because Matson anticipates a \~1 year error for teeth with certainty score A and \~2 year error for teeth with certainty score B.
+
+2.  **Age Difference by Age**
+
+    ```{r}
+    #| code-fold: TRUE
+
+    age_diff_by_age <- tooth_age_comparison %>% 
+      group_by(age1) %>% 
+      summarise(mean_diff = mean(age_diff), 
+                se_diff = sd(age_diff)/sqrt(length(age_diff)))
+
+    ggplot(age_diff_by_age, aes(x=age1, y=mean_diff))+
+      geom_bar(stat = "identity")+
+      theme_few()+
+      geom_errorbar(aes(ymin = mean_diff-se_diff, ymax = mean_diff+se_diff, width = .2))+
+      labs(y = "Age Difference", x = "Age (randomly selected otter)")
+    ```
+
+    Again, these are means ± SEs plotted. Interestingly, there is less of a trend than I anticipated here (I expected the age difference to steadily increase with animal age). Though that trend is apparent, it doesn't seem particularly striking.
+
+3.  Age Difference by Tooth Type
+
+    ```{r}
+    #| code-fold: TRUE
+
+    tooth_type_diff <- tooth_age_comparison %>% 
+      select(tooth_category1, tooth_category2, age1, age2) %>% 
+      filter(tooth_category1 != "UNK" & tooth_category2 != "UNK") %>% 
+      unite(tooth_cat_combo, c("tooth_category1","tooth_category2")) %>% 
+      mutate(tooth_cat_combo2 = if_else(tooth_cat_combo == "M_M"|
+                                        tooth_cat_combo == "M_P"|
+                                        tooth_cat_combo == "M_C"|
+                                        tooth_cat_combo == "M_I"|
+                                        tooth_cat_combo == "P_P"|
+                                        tooth_cat_combo == "P_C"|
+                                        tooth_cat_combo == "P_I"|
+                                        tooth_cat_combo == "C_C"|
+                                        tooth_cat_combo == "C_I"|
+                                        tooth_cat_combo == "I_I", 
+                                        tooth_cat_combo, 
+                                        if_else(tooth_cat_combo == "P_M", "M_P",
+                                        if_else(tooth_cat_combo == "C_M", "M_C",
+                                        if_else(tooth_cat_combo == "C_P", "P_C",
+                                        if_else(tooth_cat_combo == "I_P", "P_I",
+                                        if_else(tooth_cat_combo == "I_M", "M_I", 
+                                        if_else(tooth_cat_combo == "I_C", "C_I", NA)))))))) %>% 
+      mutate(age3 = if_else(tooth_cat_combo==tooth_cat_combo2, age1, age2),
+             age4 = if_else(tooth_cat_combo==tooth_cat_combo2, age2, age1)) %>% 
+      select(tooth_cat_combo = tooth_cat_combo2,
+             age1 = age3, 
+             age2 = age4) %>% 
+      filter(tooth_cat_combo != "P_P") %>% 
+      mutate(age_diff = age1-age2) %>% 
+      group_by(tooth_cat_combo) %>% 
+      summarise(mean_age_diff = mean(age_diff), 
+                sd_age_diff = sd(age_diff),
+             se_age_diff = sd(age_diff)/sqrt(n())) %>% 
+      mutate(tooth_cat_combo = 
+               factor(tooth_cat_combo, 
+                      levels = c("M_P", "M_C", "M_I", "P_C", "P_I", "C_I")))
+      
+
+    ggplot(tooth_type_diff, aes(x=tooth_cat_combo, y=mean_age_diff))+
+      geom_bar(stat="identity")+
+      theme_few()+
+      geom_errorbar(aes(ymin = mean_age_diff-se_age_diff, ymax = mean_age_diff+se_age_diff), width = .2)+
+      labs(y= "Age Difference (mean ± SE)", x="Tooth Type Comparison (i.e. M_P = Molar - Premolar)")
+    ```
+
+It appears that molars tend to be assigned a greater age than other tooth types, and incisors tend to be assigned a lower age than other tooth types. However, as these are means±SE (not SD), there is a lot of variation and these generalizations may not in fact hold true with a larger sample.
+
+### Modeling Drivers of Precision (work in progress) {.unnumbered}
 
 Unfortunately, due to small sample sizes, perhaps coding errors, and the fact that the drivers of aging precision are not super apparent, none of the models I have generated to date have had significant predictor effects. Here is some of what I have tried:
 
 **Age Agreement**
 
-Assessinfg predictors of age agreement using mixed-effects logistic regression (binomial distribution, logit link) with otter_id as a random effect.
+Assessing predictors of age agreement using mixed-effects logistic regression (binomial distribution, logit link) with otter_id as a random effect.
 
 -   Generate Models
 

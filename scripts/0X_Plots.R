@@ -32,9 +32,9 @@ tooth_type <- SEOT_teeth %>%
 
 ggplot(tooth_type, aes(x=tooth_category, y=freq))+
   geom_bar(aes(fill=certainty_code), position = "fill", stat='identity')+
-  scale_fill_manual(values = pal, breaks = c("A", "B", "C"), labels = c("A (low)", "B (medium)", "C (high)"))+
+  scale_fill_manual(values = pal, breaks = c("A", "B", "C"), labels = c("A (high)", "B (medium)", "C (low)"))+
   theme_classic()+
-  labs(y="Frequency of Uncertainty Level", x="Tooth Type", fill = "Uncertainty Level")+
+  labs(y="Frequency of Uncertainty Level", x="Tooth Type", fill = "Certainty Level")+
   geom_text(aes(label = paste(n), group = certainty_code), position = position_stack(vjust = 0.5), color = "white")+
   scale_x_discrete(labels = c("Molar", "Premolar", "Canine", "Incisor"))
 
@@ -50,10 +50,10 @@ area <- SEOT_teeth %>%
 
 ggplot(area, aes(x=area, y=freq))+
   geom_bar(aes(fill=certainty_code), position = "fill", stat='identity')+
-  scale_fill_manual(values = pal, breaks = c("A", "B", "C"), labels = c("A (low)", "B (medium)", "C (high)"))+
+  scale_fill_manual(values = pal, breaks = c("A", "B", "C"), labels = c("A (high)", "B (medium)", "C (low)"))+
   theme_classic()+
   geom_text(aes(label = paste(n), group = certainty_code), position = position_stack(vjust = 0.5), color = "white")+
-  labs(y="Frequency of Uncertainty Level", x="Region", fill = "Uncertainty Level")
+  labs(y="Frequency of Uncertainty Level", x="Region", fill = "Certainty Level")
   
   
 
@@ -69,10 +69,10 @@ year <- SEOT_teeth %>%
 
 ggplot(year, aes(x=year, y=freq))+
   geom_bar(aes(fill=certainty_code), position = "fill", stat='identity')+
-  scale_fill_manual(values = pal, breaks = c("A", "B", "C"), labels = c("A (low)", "B (medium)", "C (high)"))+
+  scale_fill_manual(values = pal, breaks = c("A", "B", "C"), labels = c("A (high)", "B (medium)", "C (low)"))+
   theme_classic()+
   geom_text(aes(label = paste(n), group = certainty_code), position = position_stack(vjust = 0.5), color = "white")+
-  labs(y="Frequency of Uncertainty Level", x="Year", fill = "Uncertainty Level")
+  labs(y="Frequency of Uncertainty Level", x="Year", fill = "Certainty Level")
 
 
 ###############################################################################
@@ -193,28 +193,21 @@ ggplot(year_certainty, aes(year, freq, fill = year, label = paste(value, "/", n)
 # Part 3: Age Difference ######################################################
 ###############################################################################
 
-age_diff_breakdown <- tooth_age_comparison %>%
-  group_by(age_diff) %>% 
-  mutate()
-  
+age_diff <- tooth_age_comparison %>% 
+  group_by(certainty_code_combo) %>% 
+  summarise(mean_diff = mean(age_diff), 
+         se_diff = sd(age_diff)/sqrt(length(age_diff)))
 
-ggplot(tooth_age_comparison, aes(x=age_diff, fill = certainty_code_combo))+
-  geom_histogram()+
-  scale_fill_viridis_d()
-  
-ggplot(tooth_age_comparison, aes(x=age_diff, fill = factor(age1)))+
-  geom_histogram()+
-  scale_fill_viridis_d()
+ggplot(age_diff, aes(x=certainty_code_combo, y=mean_diff))+
+  geom_bar(stat = "identity")+
+  geom_errorbar(aes(ymin = mean_diff-se_diff, ymax = mean_diff+se_diff, width = .2))
 
 
-frequency_disagreement <- tooth_age_comparison %>% 
-  mutate(mean_age = (age1+age2)/2) %>% 
-  group_by(mean_age,certainty_code_combo) %>% 
-  summarise(freq_disagreement = 1-(sum(age_class_agreement)/n()))
+age_diff_by_age <- tooth_age_comparison %>% 
+  group_by(age1) %>% 
+  summarise(mean_diff = mean(age_diff), 
+            se_diff = sd(age_diff)/sqrt(length(age_diff)))
 
-
-ggplot(frequency_disagreement, aes(x=mean_age, y=freq_disagreement, fill=certainty_code_combo))+
-  geom_bar(stat="identity")+
-  theme_few()+
-  scale_fill_viridis_d()
-  
+ggplot(age_diff_by_age, aes(x=age1, y=mean_diff))+
+  geom_bar(stat = "identity")+
+  geom_errorbar(aes(ymin = mean_diff-se_diff, ymax = mean_diff+se_diff, width = .2))
