@@ -428,8 +428,8 @@ There is no obvious trend in age disagreement here, as far as I can tell. But le
 probability_age_class_disagreement <- tooth_age_comparison %>% 
   group_by(age1) %>% 
   summarise(n = n(), 
-            n_disagreement = n()-sum(age_agreement),
-            freq_disagreement = (n-sum(age_agreement))/n)
+            n_disagreement = n()-sum(age_class_agreement),
+            freq_disagreement = (n-sum(age_class_agreement))/n)
 
 ggplot(probability_age_class_disagreement, 
        aes(x=age1, y=freq_disagreement,
