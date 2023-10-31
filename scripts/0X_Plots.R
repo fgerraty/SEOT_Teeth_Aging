@@ -198,9 +198,12 @@ age_diff <- tooth_age_comparison %>%
   summarise(mean_diff = mean(age_diff), 
          se_diff = sd(age_diff)/sqrt(length(age_diff)))
 
-ggplot(age_diff, aes(x=certainty_code_combo, y=mean_diff))+
+ggplot(age_diff, aes(x=certainty_code_combo, y=mean_diff, fill = certainty_code_combo))+
   geom_bar(stat = "identity")+
-  geom_errorbar(aes(ymin = mean_diff-se_diff, ymax = mean_diff+se_diff, width = .2))
+  theme_few()+
+  scale_fill_viridis_d()+
+  geom_errorbar(aes(ymin = mean_diff-se_diff, ymax = mean_diff+se_diff, width = .2))+
+  labs(y = "Age Difference", x = "",fill = "Certainty Code \nCombination")
 
 
 age_diff_by_age <- tooth_age_comparison %>% 
@@ -211,3 +214,61 @@ age_diff_by_age <- tooth_age_comparison %>%
 ggplot(age_diff_by_age, aes(x=age1, y=mean_diff))+
   geom_bar(stat = "identity")+
   geom_errorbar(aes(ymin = mean_diff-se_diff, ymax = mean_diff+se_diff, width = .2))
+
+
+probability_age_class_disagreement <- tooth_age_comparison %>% 
+  group_by(age1) %>% 
+  summarise(freq_disagreement = (n()-sum(age_class_agreement))/n())
+
+ggplot(probability_age_class_disagreement, aes(x=age1, y=freq_disagreement, fill = certainty_code_combo))+
+  geom_bar(stat = "identity")+
+  theme_few()+
+  scale_fill_viridis_d()+
+  labs(y="Frequency of Age Class Disagreement", x="Age (randomly selected otter)")
+
+
+
+#Could tooth type be underpinning differences? 
+
+tooth_type_diff <- tooth_age_comparison %>% 
+  select(tooth_category1, tooth_category2, age1, age2) %>% 
+  filter(tooth_category1 != "UNK" & tooth_category2 != "UNK") %>% 
+  unite(tooth_cat_combo, c("tooth_category1","tooth_category2")) %>% 
+  mutate(tooth_cat_combo2 = if_else(tooth_cat_combo == "M_M"|
+                                    tooth_cat_combo == "M_P"|
+                                    tooth_cat_combo == "M_C"|
+                                    tooth_cat_combo == "M_I"|
+                                    tooth_cat_combo == "P_P"|
+                                    tooth_cat_combo == "P_C"|
+                                    tooth_cat_combo == "P_I"|
+                                    tooth_cat_combo == "C_C"|
+                                    tooth_cat_combo == "C_I"|
+                                    tooth_cat_combo == "I_I", 
+                                    tooth_cat_combo, 
+                                    if_else(tooth_cat_combo == "P_M", "M_P",
+                                    if_else(tooth_cat_combo == "C_M", "M_C",
+                                    if_else(tooth_cat_combo == "C_P", "P_C",
+                                    if_else(tooth_cat_combo == "I_P", "P_I",
+                                    if_else(tooth_cat_combo == "I_M", "M_I", 
+                                    if_else(tooth_cat_combo == "I_C", "C_I", NA)))))))) %>% 
+  mutate(age3 = if_else(tooth_cat_combo==tooth_cat_combo2, age1, age2),
+         age4 = if_else(tooth_cat_combo==tooth_cat_combo2, age2, age1)) %>% 
+  select(tooth_cat_combo = tooth_cat_combo2,
+         age1 = age3, 
+         age2 = age4) %>% 
+  filter(tooth_cat_combo != "P_P") %>% 
+  mutate(age_diff = age1-age2) %>% 
+  group_by(tooth_cat_combo) %>% 
+  summarise(mean_age_diff = mean(age_diff), 
+            sd_age_diff = sd(age_diff),
+         se_age_diff = sd(age_diff)/sqrt(n())) %>% 
+  mutate(tooth_cat_combo = 
+           factor(tooth_cat_combo, 
+                  levels = c("M_P", "M_C", "M_I", "P_C", "P_I", "C_I")))
+  
+
+ggplot(tooth_type_diff, aes(x=tooth_cat_combo, y=mean_age_diff))+
+  geom_bar(stat="identity")+
+  theme_few()+
+  geom_errorbar(aes(ymin = mean_age_diff-se_age_diff, ymax = mean_age_diff+se_age_diff), width = .2)+
+  labs(y= "Age Difference (mean ± SE)", x="Tooth Type Comparison (i.e. M_P = Molar - Premolar)")

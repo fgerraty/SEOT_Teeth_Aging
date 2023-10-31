@@ -21,6 +21,7 @@ table(tooth_age_comparison$certainty_code_combo)
 table(tooth_age_comparison$tooth_category_combo)
 table(tooth_age_comparison$year)
 table(tooth_age_comparison$area)
+table(tooth_age_comparison$certainty_category)
 
 temp <- tooth_age_comparison %>% 
 #  filter(certainty_code_combo == "AA"|
@@ -111,13 +112,15 @@ print(aictab(cand.set = cand.mods,
 
 #Diff Age
 
-h1 <- glmer.nb(age_diff ~ certainty_category + (1 | otter_id), data = tooth_age_comparison);summary(h1)
-h2 <- glmer.nb(age_diff ~ tooth_category_combo + (1 | otter_id), data = tooth_age_comparison); summary(h2)
-h3 <- glmer.nb(age_diff ~ area + (1 | otter_id), data = tooth_age_comparison); summary(h3)
-h4 <- glmer.nb(age_diff ~ year + (1 | otter_id), data = tooth_age_comparison); summary(h4)
-h5 <- glmer.nb(age_diff ~ certainty_category + area + (1 | otter_id), data = tooth_age_comparison); summary(h5)
-h6 <- glmer.nb(age_diff ~ certainty_category + year + (1 | otter_id), data = tooth_age_comparison); summary(h6)
-null <- glmer.nb(age_diff ~ 1 + (1 | otter_id), data = tooth_age_comparison); summary(null)
+h1 <- glm.nb(age_diff ~ certainty_category + (1 | otter_id)
+               , 
+               data = temp);summary(h1)
+h2 <- glmer.nb(age_diff ~ tooth_category_combo + (1 | otter_id), data = temp); summary(h2)
+h3 <- glmer.nb(age_diff ~ area + (1 | otter_id), data = temp); summary(h3)
+h4 <- glmer.nb(age_diff ~ year + (1 | otter_id), data = temp); summary(h4)
+h5 <- glmer.nb(age_diff ~ certainty_category + area + (1 | otter_id), data = temp); summary(h5)
+h6 <- glmer.nb(age_diff ~ certainty_category + year + (1 | otter_id), data = temp); summary(h6)
+null <- glmer.nb(age_diff ~ 1 + (1 | otter_id), data = temp); summary(null)
 
 #These models threw errors! 
 #f5 <- glmer.nb(age_diff ~ certainty_category + tooth_category_combo + (1 | otter_id), data = temp); summary(f5)
